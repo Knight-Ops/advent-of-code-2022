@@ -70,6 +70,10 @@ macro_rules! run_mut {
     }
 }
 
+use simple_logger::SimpleLogger;
+
 fn main() {
+    SimpleLogger::new().init().unwrap();
+
     run!(day1);
 }

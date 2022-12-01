@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 fnv = "1.0.7"
 lazy_static = "1.4"
+log = "0.4.17"
+simple_logger = "4"
 
 [dev-dependencies]
 criterion = "0.4"

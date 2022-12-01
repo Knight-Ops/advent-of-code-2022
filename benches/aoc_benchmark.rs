@@ -43,7 +43,7 @@ macro_rules! bench_please_mut {
     }
 }
 
-bench_please!(day1);
+bench_please!(day1, part1_iter, part2_binary_heap);
 
 criterion_group!(
     all, day1

@@ -7,11 +7,11 @@ pub fn input_generator(input: &str) -> Vec<u32> {
 }
 
 pub fn part1(input: &[u32]) -> usize {
-
+    unimplemented!()
 }
 
 pub fn part2(input: &[u32]) -> usize {
-
+    unimplemented!()
 }
 
 #[cfg(test)]
