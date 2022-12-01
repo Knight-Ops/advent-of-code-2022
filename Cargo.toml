@@ -10,6 +10,7 @@ fnv = "1.0.7"
 lazy_static = "1.4"
 log = "0.4.17"
 simple_logger = "4"
+logging-allocator = "0.1.1"
 
 [dev-dependencies]
 criterion = "0.4"

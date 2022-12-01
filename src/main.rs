@@ -1,5 +1,10 @@
 use advent_of_code_2022::*;
 
+use std::alloc::{GlobalAlloc, System, Layout};
+use log::debug;
+
+use logging_allocator::LoggingAllocator;
+
 macro_rules! run {
     ($lib:ident) => {
         {
@@ -70,10 +75,16 @@ macro_rules! run_mut {
     }
 }
 
+// #[global_allocator]
+// static GLOBAL: LoggingAllocator = LoggingAllocator::new();
+
 use simple_logger::SimpleLogger;
 
 fn main() {
     SimpleLogger::new().init().unwrap();
 
+    // GLOBAL.enable_logging();
+
     run!(day1);
+
 }

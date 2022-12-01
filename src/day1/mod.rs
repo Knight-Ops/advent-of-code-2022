@@ -1,37 +1,42 @@
 use super::*;
 
-pub struct ElfList {
-    elves: Vec<Elf>
-}
-
-impl ElfList {
-    fn from_input(input: &str) -> Self {
-        ElfList {
-            elves: input.split("\n\n").map(|calorie_data| Elf::from_input(calorie_data)).collect(),
-        }
-    }
-}
-
+#[derive(Debug)]
 pub struct Elf {
     calories: Vec<u32>,
 }
 
 impl Elf {
-    fn from_input(input: &str) -> Self {
-        Elf {
-            calories: input.lines().into_iter().map(|num| num.trim().parse::<u32>().expect("Error parsing &str into u32")).collect(),
-        }
+    fn new(calories: &[u32]) -> Self {
+        Elf { calories: calories.to_vec() }
     }
 }
 
-pub fn input_generator(input: &str) -> ElfList {
-    ElfList::from_input(input)
+pub fn input_generator(input: &str) -> Vec<Elf> {
+    let mut elves = Vec::new();
+    let mut current_calories = Vec::new();
+    input.lines().for_each(|line| {
+        if line.is_empty() {
+            let e = Elf::new(&current_calories);
+            elves.push(e);
+            current_calories.clear();
+        } else {
+            current_calories.push(line.parse::<u32>().unwrap());
+        }
+    });
+
+    if !current_calories.is_empty() {
+        let e = Elf::new(&current_calories);
+        elves.push(e);
+        current_calories.clear();
+    }
+
+    elves
 }
 
-pub fn part1(input: &ElfList) -> usize {
+pub fn part1(input: &[Elf]) -> usize {
     let mut max = 0;
 
-    for elf in &input.elves {
+    for elf in input {
         let calories = elf.calories.iter().sum();
 
         if calories > max {
@@ -42,14 +47,14 @@ pub fn part1(input: &ElfList) -> usize {
     max as usize
 }
 
-pub fn part1_iter(input: &ElfList) -> usize {
-    input.elves.iter().map(|elf| elf.calories.iter().sum::<u32>() as usize).max().unwrap()
+pub fn part1_iter(input: &[Elf]) -> usize {
+    input.iter().map(|elf| elf.calories.iter().sum::<u32>() as usize).max().unwrap()
 }
 
-pub fn part2(input: &ElfList) -> usize {
-    let mut calorie_list = vec![0; input.elves.len()];
+pub fn part2(input: &[Elf]) -> usize {
+    let mut calorie_list = vec![0; input.len()];
 
-    input.elves.iter().enumerate().for_each(|(idx, elf)| {
+    input.iter().enumerate().for_each(|(idx, elf)| {
         calorie_list[idx] = elf.calories.iter().sum();
     });
 
@@ -58,10 +63,10 @@ pub fn part2(input: &ElfList) -> usize {
     calorie_list.iter().rev().take(3).sum::<u32>() as usize
 }
 
-pub fn part2_binary_heap(input: &ElfList) -> usize {
+pub fn part2_binary_heap(input: &[Elf]) -> usize {
     let mut calorie_list: std::collections::BinaryHeap<u32> = std::collections::BinaryHeap::new();
 
-    input.elves.iter().for_each(|elf| {
+    input.iter().for_each(|elf| {
         calorie_list.push(elf.calories.iter().sum());
     });
 
