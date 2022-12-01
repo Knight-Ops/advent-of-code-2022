@@ -1,4 +1,5 @@
 # Raspberry Pi 4 (4GB) Benchmarks
+```
 day1 input parser       time:   [196.84 µs 196.88 µs 196.91 µs]
 Found 4 outliers among 100 measurements (4.00%)
   1 (1.00%) low mild
@@ -19,3 +20,4 @@ Found 2 outliers among 100 measurements (2.00%)
   2 (2.00%) high mild
 
 day1 part2_binary_heap  time:   [8.3978 µs 8.4126 µs 8.4269 µs]
+```
