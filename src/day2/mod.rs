@@ -1,13 +1,16 @@
+use fnv::FnvHashMap;
+
 use super::*;
 use std::convert::TryFrom;
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Game {
     opponent: GameChoice,
     journal_entry: JournalEntry,
 }
 
 impl Game {
-    fn get_score(&self, player_move: GameChoice) -> usize {
+    fn get_score(&self, player_move: &GameChoice) -> usize {
         let mut game_score = 0;
 
         match player_move {
@@ -16,7 +19,7 @@ impl Game {
             GameChoice::Scissors => game_score += 3,
         }
 
-        match self.get_result(player_move) {
+        match self.get_result(&player_move) {
             GameResult::Win => game_score += 6,
             GameResult::Draw => game_score += 3,
             GameResult::Loss => game_score += 0,
@@ -25,7 +28,7 @@ impl Game {
         game_score
     }
 
-    fn get_result(&self, player_move: GameChoice) -> GameResult {
+    fn get_result(&self, player_move: &GameChoice) -> GameResult {
         match (&self.opponent, player_move) {
             (GameChoice::Scissors, GameChoice::Rock)
             | (GameChoice::Paper, GameChoice::Scissors)
@@ -74,6 +77,7 @@ impl TryFrom<&str> for Game {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GameChoice {
     Rock,
     Paper,
@@ -95,6 +99,7 @@ impl TryFrom<&str> for GameChoice {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum JournalEntry {
     X,
     Y,
@@ -138,7 +143,31 @@ pub fn part1(input: &[Game]) -> usize {
             JournalEntry::Y => GameChoice::Paper,
             JournalEntry::Z => GameChoice::Scissors,
         };
-        total_score += game.get_score(player_move);
+        total_score += game.get_score(&player_move);
+
+    }
+
+    total_score
+}
+
+pub fn part1_memoized(input: &[Game]) -> usize {
+    let mut game_history = FnvHashMap::default();
+    let mut total_score = 0;
+
+    for game in input {
+        if let Some(score) = game_history.get(game) {
+            total_score += score;
+        } else {
+            let player_move = match game.journal_entry {
+                JournalEntry::X => GameChoice::Rock,
+                JournalEntry::Y => GameChoice::Paper,
+                JournalEntry::Z => GameChoice::Scissors,
+            };
+            let game_score = game.get_score(&player_move);
+            game_history.insert(game, game_score);
+            total_score += game_score;
+        }
+
     }
 
     total_score
@@ -156,7 +185,32 @@ pub fn part2(input: &[Game]) -> usize {
 
         let player_move = game.get_required_move(desired_result);
 
-        total_score += game.get_score(player_move);
+        total_score += game.get_score(&player_move);
+    }
+
+    total_score
+}
+
+pub fn part2_memoized(input: &[Game]) -> usize {
+    let mut game_history = FnvHashMap::default();
+    let mut total_score = 0;
+
+    for game in input {
+        if let Some(score) = game_history.get(game) {
+            total_score += score;
+        } else {
+            let desired_result = match game.journal_entry {
+                JournalEntry::X => GameResult::Loss,
+                JournalEntry::Y => GameResult::Draw,
+                JournalEntry::Z => GameResult::Win,
+            };
+
+            let player_move = game.get_required_move(desired_result);
+
+            let game_score = game.get_score(&player_move);
+            game_history.insert(game, game_score);
+            total_score += game_score;
+        }
     }
 
     total_score
