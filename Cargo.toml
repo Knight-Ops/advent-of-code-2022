@@ -15,10 +15,15 @@ anyhow = "1"
 
 [dev-dependencies]
 criterion = "0.4"
+iai = "0.1"
 
 [[bench]]
 name = "aoc_benchmark"
 harness = false
+
+[[bin]]
+name = "profiler"
+path = "src/profiler.rs"
 
 [profile.release]
 debug = true

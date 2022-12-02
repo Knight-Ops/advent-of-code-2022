@@ -1,6 +1,9 @@
 use advent_of_code_2022::*;
 use criterion::{criterion_group, criterion_main, Criterion};
 
+#[cfg(target_os = "linux")]
+use iai;
+
 macro_rules! bench_please {
     ($lib:ident) => {
         pub fn $lib(c: &mut Criterion) {
@@ -47,5 +50,5 @@ bench_please!(day1, part1_iter, part2_binary_heap);
 bench_please!(day2);
 
 criterion_group!(all, day1, day2);
-criterion_group!(single, day2);
+criterion_group!(single, day1);
 criterion_main!(single);
