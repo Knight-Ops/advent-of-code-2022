@@ -1,7 +1,6 @@
 pub fn input_generator(input: &str) -> Vec<u32> {
     input
         .lines()
-        .into_iter()
         .map(|num| num.trim().parse::<u32>().expect("Error parsing &str into u32"))
         .collect()
 }

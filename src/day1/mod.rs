@@ -7,7 +7,9 @@ pub struct Elf {
 
 impl Elf {
     fn new(calories: &[u32]) -> Self {
-        Elf { calories: calories.to_vec() }
+        Elf {
+            calories: calories.to_vec(),
+        }
     }
 }
 
@@ -48,7 +50,11 @@ pub fn part1(input: &[Elf]) -> usize {
 }
 
 pub fn part1_iter(input: &[Elf]) -> usize {
-    input.iter().map(|elf| elf.calories.iter().sum::<u32>() as usize).max().unwrap()
+    input
+        .iter()
+        .map(|elf| elf.calories.iter().sum::<u32>() as usize)
+        .max()
+        .unwrap()
 }
 
 pub fn part2(input: &[Elf]) -> usize {
@@ -70,7 +76,8 @@ pub fn part2_binary_heap(input: &[Elf]) -> usize {
         calorie_list.push(elf.calories.iter().sum());
     });
 
-    (calorie_list.pop().unwrap() + calorie_list.pop().unwrap() + calorie_list.pop().unwrap()) as usize
+    (calorie_list.pop().unwrap() + calorie_list.pop().unwrap() + calorie_list.pop().unwrap())
+        as usize
 }
 
 #[cfg(test)]
@@ -81,12 +88,15 @@ mod tests {
             #[test]
             fn $func() {
                 let name = module_path!().split("::").collect::<Vec<&str>>();
-                let i = read_input_file(&format!("input/2022/{}_test.txt", name[name.len() - 2].trim()));
+                let i = read_input_file(&format!(
+                    "input/2022/{}_test.txt",
+                    name[name.len() - 2].trim()
+                ));
 
                 let input = super::input_generator(&i);
                 assert_eq!(super::$func(&input), $val);
             }
-        }
+        };
     }
 
     test!(part1, 24000);

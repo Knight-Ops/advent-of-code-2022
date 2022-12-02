@@ -1,7 +1,7 @@
 use advent_of_code_2022::*;
 
-use std::alloc::{GlobalAlloc, System, Layout};
 use log::debug;
+use std::alloc::{GlobalAlloc, Layout, System};
 
 use logging_allocator::LoggingAllocator;
 
@@ -86,5 +86,5 @@ fn main() {
     // GLOBAL.enable_logging();
 
     run!(day1);
-
+    run!(day2);
 }
