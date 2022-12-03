@@ -45,17 +45,17 @@ impl Game {
             GameResult::Loss => match self.opponent {
                 GameChoice::Rock => GameChoice::Scissors,
                 GameChoice::Scissors => GameChoice::Paper,
-                GameChoice::Paper => GameChoice::Rock
+                GameChoice::Paper => GameChoice::Rock,
             },
             GameResult::Draw => match self.opponent {
                 GameChoice::Rock => GameChoice::Rock,
                 GameChoice::Scissors => GameChoice::Scissors,
-                GameChoice::Paper => GameChoice::Paper
+                GameChoice::Paper => GameChoice::Paper,
             },
             GameResult::Win => match self.opponent {
                 GameChoice::Rock => GameChoice::Paper,
                 GameChoice::Scissors => GameChoice::Rock,
-                GameChoice::Paper => GameChoice::Scissors
+                GameChoice::Paper => GameChoice::Scissors,
             },
         }
     }
@@ -144,7 +144,6 @@ pub fn part1(input: &[Game]) -> usize {
             JournalEntry::Z => GameChoice::Scissors,
         };
         total_score += game.get_score(&player_move);
-
     }
 
     total_score
@@ -167,7 +166,6 @@ pub fn part1_memoized(input: &[Game]) -> usize {
             game_history.insert(game, game_score);
             total_score += game_score;
         }
-
     }
 
     total_score

@@ -1,6 +1,6 @@
 use advent_of_code_2022::*;
 
-fn main () {
+fn main() {
     let raw_input = read_input_file(&format!("input/2022/day2.txt"));
 
     let mut formatted_input = day2::input_generator(&raw_input);
