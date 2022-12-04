@@ -103,7 +103,14 @@ pub fn part2_intersection(input: &[Rucksack]) -> usize {
             let second_item_map: FnvHashSet<char> = rucksacks[1].all_items().chars().collect();
             let third_item_map: FnvHashSet<char> = rucksacks[2].all_items().chars().collect();
 
-            let duplicate_value = first_item_map.intersection(&second_item_map).map(|c| *c).collect::<FnvHashSet<char>>().intersection(&third_item_map).next().expect("No intersection found").to_owned();
+            let duplicate_value = first_item_map
+                .intersection(&second_item_map)
+                .map(|c| *c)
+                .collect::<FnvHashSet<char>>()
+                .intersection(&third_item_map)
+                .next()
+                .expect("No intersection found")
+                .to_owned();
             if duplicate_value.is_ascii_uppercase() {
                 // This is an adjustment from hex values of letters to the given scoring system
                 (duplicate_value as u8 - 64 + 26) as usize
