@@ -52,6 +52,8 @@ macro_rules! run_mut {
             let part1 = $lib::part1(&mut formatted_input);
             println!("Solution for {} Part 1 : {}", stringify!($lib), part1);
 
+            let mut formatted_input = $lib::input_generator(&raw_input);
+
             let part2 = $lib::part2(&mut formatted_input);
             println!("Solution for {} Part 2: {}", stringify!($lib), part2);
         }
@@ -67,10 +69,12 @@ macro_rules! run_mut {
             let part1 = $lib::part1(&mut formatted_input);
             println!("Solution for {} Part 1 : {}", stringify!($lib), part1);
 
+            let mut formatted_input = $lib::input_generator(&raw_input);
+
             let part2 = $lib::part2(&mut formatted_input);
             println!("Solution for {} Part 2: {}", stringify!($lib), part2);
 
-            $(println!("Solution for {} {} : {}", stringify!($lib), stringify!($func), $lib::$func(&formatted_input));)*
+            $(println!("Solution for {} {} : {}", stringify!($lib), stringify!($func), $lib::$func(&$lib::input_generator(&raw_input)));)*
         }
     }
 }
@@ -89,4 +93,5 @@ fn main() {
     run!(day2);
     run!(day3);
     run!(day4);
+    run_mut!(day5);
 }

@@ -37,13 +37,9 @@ pub fn part1(input: &[CleaningAssignment]) -> usize {
                 cleaning_assignment.first.end() <= cleaning_assignment.second.end(),
             ) {
                 // This is the simple case that the first range is totally included in the second range
-                (true, true) => {
-                    Some(true)
-                }
+                (true, true) => Some(true),
                 // This is the simple case that the second range is totally included in the first range
-                (false, false) => {
-                    Some(true)
-                }
+                (false, false) => Some(true),
                 // Logic gets trickier here, this is where both ranges *could* start at the same location
                 (true, false) => {
                     // If the first and second range start at the same spot, this means the second range is included in the first
@@ -77,7 +73,7 @@ pub fn part2(input: &[CleaningAssignment]) -> usize {
                 (true, true) => panic!("Something horrible has happened, this is impossible"),
                 (true, false) => None,
                 (false, true) => None,
-                _ => Some(true)
+                _ => Some(true),
             }
         })
         .count()
