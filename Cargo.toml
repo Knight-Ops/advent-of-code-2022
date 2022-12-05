@@ -13,7 +13,6 @@ log = "0.4.17"
 simple_logger = "4"
 logging-allocator = "0.1.1"
 anyhow = "1"
-ahash = "0.8.2"
 
 [dev-dependencies]
 criterion = "0.4"

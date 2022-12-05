@@ -48,15 +48,7 @@ macro_rules! bench_please_mut {
 
 bench_please!(day1, part1_iter, part2_binary_heap);
 bench_please!(day2, part1_memoized, part2_memoized);
-bench_please!(
-    day3,
-    part1_iter,
-    part1_ahash,
-    part1_iter_ahash,
-    part2_intersection,
-    part2_ahash,
-    part2_intersection_ahash
-);
+bench_please!(day3, part1_iter, part2_intersection);
 bench_please!(day4);
 bench_please_mut!(day5);
 

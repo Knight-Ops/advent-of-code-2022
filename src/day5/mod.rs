@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
-use ahash::AHashMap;
+use fnv::FnvHashMap;
 
 #[derive(Debug)]
 pub struct Supply {
-    stacks: AHashMap<usize, VecDeque<char>>,
+    stacks: FnvHashMap<usize, VecDeque<char>>,
     instructions: Vec<Instruction>,
 }
 
@@ -22,7 +22,7 @@ pub fn input_generator(input: &str) -> Supply {
         .next()
         .expect("Image wasn't split properly, couldn't get layout");
 
-    let mut stacks: AHashMap<usize, VecDeque<char>> = AHashMap::new();
+    let mut stacks: FnvHashMap<usize, VecDeque<char>> = FnvHashMap::default();
     layout_string.lines().for_each(|line| {
         line.chars()
             .enumerate()
@@ -70,14 +70,30 @@ pub fn input_generator(input: &str) -> Supply {
 pub fn part1(input: &mut Supply) -> String {
     input.instructions.iter().for_each(|instr| {
         (0..instr.count).for_each(|_| {
-            let elf_crate = input.stacks.get_mut(&instr.from).expect("Error while getting from stack").pop_front().expect("Tried to move crate that doesn't exist");
-            input.stacks.get_mut(&instr.to).expect("Error while getting to stack").push_front(elf_crate);
+            let elf_crate = input
+                .stacks
+                .get_mut(&instr.from)
+                .expect("Error while getting from stack")
+                .pop_front()
+                .expect("Tried to move crate that doesn't exist");
+            input
+                .stacks
+                .get_mut(&instr.to)
+                .expect("Error while getting to stack")
+                .push_front(elf_crate);
         })
     });
 
     let mut final_top_crates = String::with_capacity(input.stacks.len());
     for x in 1..=input.stacks.len() {
-        final_top_crates.push(*input.stacks.get(&x).expect("Error construction final crate list").front().expect("Error retrieving crate from empty stack"));
+        final_top_crates.push(
+            *input
+                .stacks
+                .get(&x)
+                .expect("Error construction final crate list")
+                .front()
+                .expect("Error retrieving crate from empty stack"),
+        );
     }
 
     final_top_crates
@@ -85,15 +101,32 @@ pub fn part1(input: &mut Supply) -> String {
 
 pub fn part2(input: &mut Supply) -> String {
     input.instructions.iter().for_each(|instr| {
-        let elf_crate = input.stacks.get_mut(&instr.from).expect("Error while getting from stack").drain(0..instr.count).rev().collect::<String>();
+        let elf_crate = input
+            .stacks
+            .get_mut(&instr.from)
+            .expect("Error while getting from stack")
+            .drain(0..instr.count)
+            .rev()
+            .collect::<String>();
         elf_crate.chars().for_each(|c| {
-            input.stacks.get_mut(&instr.to).expect("Error while getting to stack").push_front(c);
+            input
+                .stacks
+                .get_mut(&instr.to)
+                .expect("Error while getting to stack")
+                .push_front(c);
         })
     });
 
     let mut final_top_crates = String::with_capacity(input.stacks.len());
     for x in 1..=input.stacks.len() {
-        final_top_crates.push(*input.stacks.get(&x).expect("Error construction final crate list").front().expect("Error retrieving crate from empty stack"));
+        final_top_crates.push(
+            *input
+                .stacks
+                .get(&x)
+                .expect("Error construction final crate list")
+                .front()
+                .expect("Error retrieving crate from empty stack"),
+        );
     }
 
     final_top_crates
