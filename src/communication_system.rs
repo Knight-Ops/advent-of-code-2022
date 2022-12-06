@@ -11,6 +11,7 @@ impl Device {
         }
     }
 
+    // This implementation was the winner from day 6 testing
     fn find_duplicate_data(&self, size: usize) -> usize {
         let mut start_idx = 0;
     
