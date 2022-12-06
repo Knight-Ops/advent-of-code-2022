@@ -4,6 +4,8 @@
 use anyhow::{anyhow, Result};
 use log::{debug, trace};
 
+pub mod communication_system;
+
 pub mod day1;
 pub mod day2;
 pub mod day3;
