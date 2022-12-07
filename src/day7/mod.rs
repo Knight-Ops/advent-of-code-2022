@@ -25,12 +25,23 @@ impl HandheldNavigator {
         }
     }
 
-    pub fn apply_output(&mut self, output: &HandheldUpdateOutput) {
-        match output {
-            HandheldUpdateOutput::Command(cmd) => {
-                // It may be wise to build a state machine to add error checking here where an "ls" just changes state to injesting output
-                match cmd {
-                    HandheldCommandType::ChangeDirectory(arg) => match arg.as_str() {
+    fn apply_text(&mut self, output: &str) {
+        if output.starts_with('$') {
+            let mut split = output.split_whitespace();
+
+            // Discard the $ we already matched on
+            split.next();
+
+            match split
+                .next()
+                .expect("Command line doesn't contain data for an actual command")
+            {
+                "cd" => {
+                    let argument = split
+                        .next()
+                        .expect("Change directory command found, but no argument provided");
+
+                    match argument {
                         "/" => {
                             // We can unwrap here because we know this exists
                             self.current_directory = "/".to_string();
@@ -48,81 +59,78 @@ impl HandheldNavigator {
                             }
                         }
                         _ => {
-                            let full_path = format!("{}{}/", self.current_directory, arg);
+                            let full_path = format!("{}{}/", self.current_directory, argument);
                             if let Some(_) = self.file_system.get(&full_path) {
                                 self.current_directory = full_path
-                                    
                             } else {
                                 panic!("Tried to cd into directory that doesn't exist")
                             }
                         }
-                    },
-                    HandheldCommandType::ListDirectory => {
-                        // There isn't anything to do here
                     }
                 }
-            }
-            HandheldUpdateOutput::Directory(name) => {
-                let path_name = format!("{}{}/", self.current_directory, name);
-                self.file_system.insert(
-                    path_name,
-                    HandheldDirectory {
-                        parent: Some(self.current_directory.to_owned()),
-                        sub_directories: Vec::new(),
-                        file_list: Vec::new(),
-                        total_size: 0,
-                    },
-                );
+                "ls" => {
+                    // There is nothing to do
+                }
+                _ => unimplemented!("This command does not exist"),
+            };
+        } else if output.starts_with("dir") {
+            let mut split = output.split_whitespace();
 
-                self.file_system
-                    .get_mut(&self.current_directory)
-                    .unwrap()
-                    .sub_directories
-                    .push(name.to_owned())
-            }
-            HandheldUpdateOutput::File(name, size) => {
-                if let Some(mut parent) = {
-                    let mut current_dir =
-                        self.file_system.get_mut(&self.current_directory).unwrap();
-                    current_dir
-                        .file_list
-                        .push(HandheldFile { name: name.to_owned(), size: *size });
-                    current_dir.total_size += *size;
-                    current_dir.parent.to_owned()
-                } {
-                    // Add this back up to the top
-                    loop {
-                        let current_dir = self.file_system.get_mut(&parent).unwrap();
-                        current_dir.total_size += *size;
+            // Discard our already matched "dir"
+            split.next();
 
-                        if current_dir.parent.is_none() {
-                            break;
-                        } else {
-                            parent = current_dir.parent.to_owned().unwrap()
-                        }
+            let dir_name = split.next().expect("dir output found without name");
+
+            let path_name = format!("{}{}/", self.current_directory, dir_name);
+            self.file_system.insert(
+                path_name,
+                HandheldDirectory {
+                    parent: Some(self.current_directory.to_owned()),
+                    sub_directories: Vec::new(),
+                    file_list: Vec::new(),
+                    total_size: 0,
+                },
+            );
+
+            self.file_system
+                .get_mut(&self.current_directory)
+                .unwrap()
+                .sub_directories
+                .push(dir_name.to_owned());
+        } else {
+            // This is a hack for files, I don't like it being the fallback
+            let mut split = output.split_whitespace();
+
+            let file_size = split
+                .next()
+                .expect("File being parsed without size")
+                .parse()
+                .expect("File size failed to parse into a number");
+            let file_name = split.next().expect("File being parsed without name");
+
+            if let Some(mut parent) = {
+                let mut current_dir = self.file_system.get_mut(&self.current_directory).unwrap();
+                current_dir.file_list.push(HandheldFile {
+                    name: file_name.to_owned(),
+                    size: file_size,
+                });
+                current_dir.total_size += file_size;
+                current_dir.parent.to_owned()
+            } {
+                // Add this back up to the top
+                loop {
+                    let current_dir = self.file_system.get_mut(&parent).unwrap();
+                    current_dir.total_size += file_size;
+
+                    if current_dir.parent.is_none() {
+                        break;
+                    } else {
+                        parent = current_dir.parent.to_owned().unwrap()
                     }
                 }
             }
         }
     }
-}
-
-#[derive(Debug)]
-pub enum HandheldUpdateOutput {
-    Command(HandheldCommandType),
-    Directory(String),
-    File(String, usize),
-}
-
-#[derive(Debug)]
-pub enum HandheldCommandType {
-    ChangeDirectory(String),
-    ListDirectory,
-}
-
-#[derive(Debug)]
-pub struct HandheldCommand {
-    command: HandheldCommandType,
 }
 
 #[derive(Debug)]
@@ -142,60 +150,9 @@ pub struct HandheldFile {
 pub fn input_generator(input: &str) -> HandheldNavigator {
     let mut handheld = HandheldNavigator::new();
 
-    
-    let output_lines : Vec<HandheldUpdateOutput> = input
-        .lines()
-        .map(|line| {
-            if line.starts_with('$') {
-                let mut split = line.split_whitespace();
+    input.lines().for_each(|line| handheld.apply_text(line));
 
-                // Discard the $ we already matched on
-                split.next();
-
-                let command = match split
-                    .next()
-                    .expect("Command line doesn't contain data for an actual command")
-                {
-                    "cd" => {
-                        let argument = split
-                            .next()
-                            .expect("Change directory command found, but no argument provided");
-                        HandheldCommandType::ChangeDirectory(argument.to_owned())
-                    }
-                    "ls" => HandheldCommandType::ListDirectory,
-                    _ => unimplemented!("This command does not exist"),
-                };
-
-                HandheldUpdateOutput::Command(command)
-            } else if line.starts_with("dir") {
-                let mut split = line.split_whitespace();
-
-                // Discard our already matched "dir"
-                split.next();
-
-                let dir_name = split.next().expect("dir output found without name");
-
-                HandheldUpdateOutput::Directory(dir_name.to_owned())
-            } else {
-                // This is a hack for files, I don't like it being the fallback
-                let mut split = line.split_whitespace();
-
-                let file_size = split
-                    .next()
-                    .expect("File being parsed without size")
-                    .parse()
-                    .expect("File size failed to parse into a number");
-                let file_name = split.next().expect("File being parsed without name");
-                HandheldUpdateOutput::File(file_name.to_owned(), file_size)
-            }
-        })
-        .collect();
-
-        output_lines.iter().for_each(|output| {
-            handheld.apply_output(output);
-        });
-
-        handheld
+    handheld
 }
 
 pub fn part1(input: &HandheldNavigator) -> usize {
@@ -216,13 +173,18 @@ pub fn part2(input: &HandheldNavigator) -> usize {
     let free_space = 70000000 - input.file_system.get(&"/".to_string()).unwrap().total_size;
     let size_needed = 30000000 - free_space;
 
-    input.file_system.iter().filter_map(|(_, dir)| {
-        if dir.total_size > size_needed {
-            Some(dir.total_size)
-        } else {
-            None
-        }
-    }).min().unwrap()
+    input
+        .file_system
+        .iter()
+        .filter_map(|(_, dir)| {
+            if dir.total_size > size_needed {
+                Some(dir.total_size)
+            } else {
+                None
+            }
+        })
+        .min()
+        .unwrap()
 }
 
 #[cfg(test)]
