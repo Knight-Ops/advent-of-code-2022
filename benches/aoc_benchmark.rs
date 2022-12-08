@@ -66,7 +66,8 @@ bench_please!(
     part2_lib
 );
 bench_please!(day7);
+bench_please!(day8, part1_confusing);
 
-criterion_group!(all, day1, day2, day3, day4, day5, day6);
-criterion_group!(single, day7);
+criterion_group!(all, day1, day2, day3, day4, day5, day6, day7, day8);
+criterion_group!(single, day8);
 criterion_main!(single);
