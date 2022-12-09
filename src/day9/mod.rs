@@ -82,7 +82,7 @@ impl Rope {
             x = x >> 1;
         } 
         if y.abs() == 2 {
-            y = y >> 2;
+            y = y >> 1;
         }
 
         self.knots[tail_idx].0 += x;
