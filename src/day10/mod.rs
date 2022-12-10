@@ -127,7 +127,7 @@ pub fn part2(input: &[Instruction]) -> usize {
         }
     }
 
-    // println!("{}", display);
+    println!("{}", display);
     0
 }
 
