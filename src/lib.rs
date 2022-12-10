@@ -15,6 +15,7 @@ pub mod day6;
 pub mod day7;
 pub mod day8;
 pub mod day9;
+pub mod day10;
 
 pub fn read_input_file(input: &str) -> String {
     let file = std::fs::read_to_string(input)
