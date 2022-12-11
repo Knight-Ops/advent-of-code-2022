@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use std::cell::{RefCell, Cell};
+use std::cell::{Cell};
 use std::fmt::{Debug};
 
 #[derive(Debug)]
@@ -11,15 +11,25 @@ pub struct BarrelOfMonkeys {
 impl BarrelOfMonkeys {
     pub fn process_round(&mut self) {
         self.barrel.iter().for_each(|monkey| {
-            while let Some(item) = monkey.items.borrow_mut().pop_front() {
+            // We can just straight up take the VeqDeque since we know when we are done, it will be empty, this allows u to avoid mutability of the whole `Monkey`
+            let mut test_vecdeq = monkey.items.replace(VecDeque::new());
+            while let Some(item) = test_vecdeq.pop_front() {
                 let mut item = monkey.inspect_item(item);
 
                 item = item / 3;
 
                 if monkey.test_item(item) {
-                    self.barrel[monkey.monkey_true].items.borrow_mut().push_back(item)
+                    let mut true_monkey_items = self.barrel[monkey.monkey_true].items.take();
+
+                    true_monkey_items.push_back(item);
+
+                    self.barrel[monkey.monkey_true].items.set(true_monkey_items);
                 } else {
-                    self.barrel[monkey.monkey_false].items.borrow_mut().push_back(item)
+                    let mut false_monkey_items = self.barrel[monkey.monkey_false].items.take();
+
+                    false_monkey_items.push_back(item);
+
+                    self.barrel[monkey.monkey_true].items.set(false_monkey_items);
                 }
 
             }
@@ -28,15 +38,26 @@ impl BarrelOfMonkeys {
 
     pub fn process_round_crazy(&mut self) {
         self.barrel.iter().for_each(|monkey| {
-            while let Some(item) = monkey.items.borrow_mut().pop_front() {
+            // We can just straight up take the VeqDeque since we know when we are done, it will be empty, this allows u to avoid mutability of the whole `Monkey`
+            let mut test_vecdeq = monkey.items.replace(VecDeque::new());
+
+            while let Some(item) = test_vecdeq.pop_front() {
                 let mut item = monkey.inspect_item(item);
 
                 item = item % self.barrel_modulo;
 
                 if monkey.test_item(item) {
-                    self.barrel[monkey.monkey_true].items.borrow_mut().push_back(item)
+                    let mut true_monkey_items = self.barrel[monkey.monkey_true].items.take();
+
+                    true_monkey_items.push_back(item);
+
+                    self.barrel[monkey.monkey_true].items.set(true_monkey_items);
                 } else {
-                    self.barrel[monkey.monkey_false].items.borrow_mut().push_back(item)
+                    let mut false_monkey_items = self.barrel[monkey.monkey_false].items.take();
+
+                    false_monkey_items.push_back(item);
+
+                    self.barrel[monkey.monkey_true].items.set(false_monkey_items);
                 }
 
             }
@@ -45,7 +66,8 @@ impl BarrelOfMonkeys {
 }
 
 pub struct Monkey {
-    items: RefCell<VecDeque<usize>>,
+    // By using a Cell instead of a RefCell here, we can avoid the runtime borrow checking which is lots of overhead. Since this is single threaded, not big deal.
+    items: Cell<VecDeque<usize>>,
     operation: Box<dyn Fn(usize) -> usize>,
     test: Box<dyn Fn(usize) -> bool>,
     mod_value: usize,
@@ -56,7 +78,7 @@ pub struct Monkey {
 
 impl Debug for Monkey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?} | Inspected : {}", self.items, self.inspection_count.get())
+        write!(f, "Inspected : {}", self.inspection_count.get())
     }
 }
 
@@ -111,7 +133,7 @@ pub fn input_generator(input: &str) -> BarrelOfMonkeys {
             // All this line is fluff except the last number
             let monkey_false = lines.next().unwrap().split_whitespace().last().unwrap().parse::<usize>().unwrap();
 
-            Monkey { items: RefCell::new(items), operation: Box::new(operation), test: Box::new(test), mod_value: test_val, monkey_true, monkey_false, inspection_count: Cell::new(0) }
+            Monkey { items: Cell::new(items), operation: Box::new(operation), test: Box::new(test), mod_value: test_val, monkey_true, monkey_false, inspection_count: Cell::new(0) }
         })
         .collect();
 
