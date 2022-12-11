@@ -99,4 +99,5 @@ fn main() {
     run!(day8);
     run!(day9);
     run!(day10);
+    run_mut!(day11);
 }
