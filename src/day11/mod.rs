@@ -63,6 +63,44 @@ impl BarrelOfMonkeys {
             }
         })
     }
+
+    pub fn process_round_crazy_unsafe(&mut self) {
+        self.barrel.iter().for_each(|monkey| {
+            // We can just straight up take the VeqDeque since we know when we are done, it will be empty, this allows u to avoid mutability of the whole `Monkey`
+            let mut test_vecdeq = monkey.items.replace(VecDeque::new());
+
+            while let Some(item) = test_vecdeq.pop_front() {
+                let mut item = monkey.inspect_item(item);
+
+                item = item % self.barrel_modulo;
+
+                if monkey.test_item(item) {
+                    unsafe {      
+                        // let mut true_monkey_items = self.barrel[monkey.monkey_true].items.take();
+                        let mut true_monkey_items = self.barrel.get_unchecked(monkey.monkey_true).items.take();
+
+                        true_monkey_items.push_back(item);
+    
+                        // self.barrel[monkey.monkey_true].items.set(true_monkey_items);
+                        self.barrel.get_unchecked(monkey.monkey_true).items.set(true_monkey_items);
+                    }
+
+                } else {
+                    unsafe {
+                        // let mut false_monkey_items = self.barrel[monkey.monkey_false].items.take();
+                        let mut false_monkey_items = self.barrel.get_unchecked(monkey.monkey_false).items.take();
+    
+                        false_monkey_items.push_back(item);
+    
+                        // self.barrel[monkey.monkey_true].items.set(false_monkey_items);
+                        self.barrel.get_unchecked(monkey.monkey_false).items.set(false_monkey_items);
+
+                    }
+                }
+
+            }
+        })
+    }
 }
 
 pub struct Monkey {
@@ -185,6 +223,27 @@ pub fn part2(input: &mut BarrelOfMonkeys) -> usize {
     max * second_max
 }
 
+pub fn part2_unsafe(input: &mut BarrelOfMonkeys) -> usize {
+    for _ in 0..10000 {
+        input.process_round_crazy_unsafe();
+    }
+
+    let mut max = 0;
+    let mut second_max = 0;
+    for monkey in input.barrel.iter() {
+        if monkey.inspection_count.get() > max {
+            if max > second_max {
+                second_max = max;
+            }
+            max = monkey.inspection_count.get();
+        } else if monkey.inspection_count.get() > second_max {
+            second_max = monkey.inspection_count.get();
+        }
+    }
+
+    max * second_max
+}
+
 #[cfg(test)]
 mod tests {
     use crate::read_input_file;
@@ -219,4 +278,5 @@ mod tests {
 
     test_mut!(part1, 10605);
     test_mut!(part2, 2713310158);
+    test_mut!(part2_unsafe, 2713310158);
 }
