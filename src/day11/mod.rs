@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use std::cell::{Cell};
+use std::cell::{RefCell, Cell};
 use std::fmt::{Debug};
 
 #[derive(Debug)]
@@ -11,25 +11,15 @@ pub struct BarrelOfMonkeys {
 impl BarrelOfMonkeys {
     pub fn process_round(&mut self) {
         self.barrel.iter().for_each(|monkey| {
-            // We can just straight up take the VeqDeque since we know when we are done, it will be empty, this allows u to avoid mutability of the whole `Monkey`
-            let mut test_vecdeq = monkey.items.replace(VecDeque::new());
-            while let Some(item) = test_vecdeq.pop_front() {
+            while let Some(item) = monkey.items.borrow_mut().pop_front() {
                 let mut item = monkey.inspect_item(item);
 
                 item = item / 3;
 
                 if monkey.test_item(item) {
-                    let mut true_monkey_items = self.barrel[monkey.monkey_true].items.take();
-
-                    true_monkey_items.push_back(item);
-
-                    self.barrel[monkey.monkey_true].items.set(true_monkey_items);
+                    self.barrel[monkey.monkey_true].items.borrow_mut().push_back(item)
                 } else {
-                    let mut false_monkey_items = self.barrel[monkey.monkey_false].items.take();
-
-                    false_monkey_items.push_back(item);
-
-                    self.barrel[monkey.monkey_true].items.set(false_monkey_items);
+                    self.barrel[monkey.monkey_false].items.borrow_mut().push_back(item)
                 }
 
             }
@@ -38,64 +28,15 @@ impl BarrelOfMonkeys {
 
     pub fn process_round_crazy(&mut self) {
         self.barrel.iter().for_each(|monkey| {
-            // We can just straight up take the VeqDeque since we know when we are done, it will be empty, this allows u to avoid mutability of the whole `Monkey`
-            let mut test_vecdeq = monkey.items.replace(VecDeque::new());
-
-            while let Some(item) = test_vecdeq.pop_front() {
+            while let Some(item) = monkey.items.borrow_mut().pop_front() {
                 let mut item = monkey.inspect_item(item);
 
                 item = item % self.barrel_modulo;
 
                 if monkey.test_item(item) {
-                    let mut true_monkey_items = self.barrel[monkey.monkey_true].items.take();
-
-                    true_monkey_items.push_back(item);
-
-                    self.barrel[monkey.monkey_true].items.set(true_monkey_items);
+                    self.barrel[monkey.monkey_true].items.borrow_mut().push_back(item)
                 } else {
-                    let mut false_monkey_items = self.barrel[monkey.monkey_false].items.take();
-
-                    false_monkey_items.push_back(item);
-
-                    self.barrel[monkey.monkey_true].items.set(false_monkey_items);
-                }
-
-            }
-        })
-    }
-
-    pub fn process_round_crazy_unsafe(&mut self) {
-        self.barrel.iter().for_each(|monkey| {
-            // We can just straight up take the VeqDeque since we know when we are done, it will be empty, this allows u to avoid mutability of the whole `Monkey`
-            let mut test_vecdeq = monkey.items.replace(VecDeque::new());
-
-            while let Some(item) = test_vecdeq.pop_front() {
-                let mut item = monkey.inspect_item(item);
-
-                item = item % self.barrel_modulo;
-
-                if monkey.test_item(item) {
-                    unsafe {      
-                        // let mut true_monkey_items = self.barrel[monkey.monkey_true].items.take();
-                        let mut true_monkey_items = self.barrel.get_unchecked(monkey.monkey_true).items.take();
-
-                        true_monkey_items.push_back(item);
-    
-                        // self.barrel[monkey.monkey_true].items.set(true_monkey_items);
-                        self.barrel.get_unchecked(monkey.monkey_true).items.set(true_monkey_items);
-                    }
-
-                } else {
-                    unsafe {
-                        // let mut false_monkey_items = self.barrel[monkey.monkey_false].items.take();
-                        let mut false_monkey_items = self.barrel.get_unchecked(monkey.monkey_false).items.take();
-    
-                        false_monkey_items.push_back(item);
-    
-                        // self.barrel[monkey.monkey_true].items.set(false_monkey_items);
-                        self.barrel.get_unchecked(monkey.monkey_false).items.set(false_monkey_items);
-
-                    }
+                    self.barrel[monkey.monkey_false].items.borrow_mut().push_back(item)
                 }
 
             }
@@ -104,8 +45,7 @@ impl BarrelOfMonkeys {
 }
 
 pub struct Monkey {
-    // By using a Cell instead of a RefCell here, we can avoid the runtime borrow checking which is lots of overhead. Since this is single threaded, not big deal.
-    items: Cell<VecDeque<usize>>,
+    items: RefCell<VecDeque<usize>>,
     operation: Box<dyn Fn(usize) -> usize>,
     test: Box<dyn Fn(usize) -> bool>,
     mod_value: usize,
@@ -171,7 +111,7 @@ pub fn input_generator(input: &str) -> BarrelOfMonkeys {
             // All this line is fluff except the last number
             let monkey_false = lines.next().unwrap().split_whitespace().last().unwrap().parse::<usize>().unwrap();
 
-            Monkey { items: Cell::new(items), operation: Box::new(operation), test: Box::new(test), mod_value: test_val, monkey_true, monkey_false, inspection_count: Cell::new(0) }
+            Monkey { items: RefCell::new(items), operation: Box::new(operation), test: Box::new(test), mod_value: test_val, monkey_true, monkey_false, inspection_count: Cell::new(0) }
         })
         .collect();
 
@@ -205,27 +145,6 @@ pub fn part1(input: &mut BarrelOfMonkeys) -> usize {
 pub fn part2(input: &mut BarrelOfMonkeys) -> usize {
     for _ in 0..10000 {
         input.process_round_crazy();
-    }
-
-    let mut max = 0;
-    let mut second_max = 0;
-    for monkey in input.barrel.iter() {
-        if monkey.inspection_count.get() > max {
-            if max > second_max {
-                second_max = max;
-            }
-            max = monkey.inspection_count.get();
-        } else if monkey.inspection_count.get() > second_max {
-            second_max = monkey.inspection_count.get();
-        }
-    }
-
-    max * second_max
-}
-
-pub fn part2_unsafe(input: &mut BarrelOfMonkeys) -> usize {
-    for _ in 0..10000 {
-        input.process_round_crazy_unsafe();
     }
 
     let mut max = 0;
@@ -278,5 +197,4 @@ mod tests {
 
     test_mut!(part1, 10605);
     test_mut!(part2, 2713310158);
-    test_mut!(part2_unsafe, 2713310158);
 }
